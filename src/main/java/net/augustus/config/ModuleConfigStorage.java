@@ -12,8 +12,6 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketThreadUtil;
 
@@ -23,6 +21,7 @@ public class ModuleConfigStorage extends JsonConfigFile {
       114, -27, 95, -64, 18, -101, 73, -38, 126, -9, 44, -87, 61, -122, 7, -55,
       89, -16, 35, -78, 103, -41, 52, -94, 67, -128, 21, -63, 98, -11, 76, -49
    };
+   private static final Aes256Ecb CONFIG_CIPHER = new Aes256Ecb(AES_KEY);
    private final HashMap<Integer, ModuleConfigCodec> formatCodecs;
 
    public ModuleConfigStorage() {
@@ -54,9 +53,7 @@ public class ModuleConfigStorage extends JsonConfigFile {
          return new String(bytes, StandardCharsets.UTF_8);
       }
       try {
-         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-         cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(AES_KEY, "AES"));
-         byte[] decrypted = cipher.doFinal(bytes, ENCRYPTED_MAGIC_HEADER.length, bytes.length - ENCRYPTED_MAGIC_HEADER.length);
+         byte[] decrypted = CONFIG_CIPHER.decryptPkcs7(bytes, ENCRYPTED_MAGIC_HEADER.length, bytes.length - ENCRYPTED_MAGIC_HEADER.length);
          return new String(decrypted, StandardCharsets.UTF_8);
       } catch (Exception e) {
          System.err.println("Failed to decrypt AES-256-ECB config payload (" + bytes.length + " bytes):");
