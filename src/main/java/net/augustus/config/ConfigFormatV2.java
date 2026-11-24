@@ -2,6 +2,7 @@ package net.augustus.config;
 
 import net.augustus.Augustus;
 import net.augustus.clickgui.ClickGuiScreen;
+import net.augustus.modules.render.ClickGui;
 import net.augustus.settings.property.ConfigProperty;
 import net.augustus.settings.property.codec.JsonCodecRegistryHolder;
 import com.google.gson.JsonElement;
@@ -37,13 +38,18 @@ public class ConfigFormatV2 implements ModuleConfigCodec {
       if (!(featureBase instanceof Module)) {
          return true;
       } else {
+         Module module = (Module)featureBase;
          if (!(configProperty instanceof AbstractFeature)) {
-            if (configProperty.getName().equals("M_T")) {
-               return ((Module)featureBase).isLoadFromConfig();
+            String propName = configProperty.getName();
+            if ("M_T".equals(propName)) {
+               return !(module instanceof ClickGui) && module.isLoadFromConfig();
+            } else if ("M_A".equals(propName)) {
+               return module.isLoadFromConfig();
+            } else if ("M_K".equals(propName)) {
+               return Augustus.getInstance().getModuleManager().clientSettings.loadKeysFromConfigs.getValue()
+                  && module.isLoadFromConfig();
             } else {
-               return Augustus.getInstance().getModuleManager().clientSettings.loadKeysFromConfigs.getValue() && configProperty.getName().equals("M_K")
-                  ? ((Module)featureBase).isLoadFromConfig()
-                  : false;
+               return false;
             }
          } else {
             String name = configProperty.getName();
@@ -52,8 +58,10 @@ public class ConfigFormatV2 implements ModuleConfigCodec {
                return false;
             } else if (name.contains("Blur")) {
                return moduleManager.blur.isLoadFromConfig();
+            } else if (name.contains("Shadow")) {
+               return moduleManager.shadow.isLoadFromConfig();
             } else {
-               return name.contains("Shadow") ? moduleManager.shadow.isLoadFromConfig() : ((Module)featureBase).isLoadFromConfig();
+               return module.isLoadFromConfig();
             }
          }
       }
@@ -89,19 +97,63 @@ public class ConfigFormatV2 implements ModuleConfigCodec {
 
    @Override
    public void applyConfig(JsonObject json) {
+      this.applyConfig(json, ConfigLoadReport.current());
+   }
+
+   public void applyConfig(JsonObject json, ConfigLoadReport report) {
+      if (json == null) {
+         return;
+      }
+      JsonObject configSection = null;
       JsonElement elem = json.get("Configuration");
       if (elem != null && elem.isJsonObject()) {
-         JsonElement elem2 = json.get("Config_Header");
-         if (elem2 != null && elem2.isJsonObject()) {
-            JsonObject asJsonObject = elem2.getAsJsonObject();
-            boolean flag = !asJsonObject.has("Config_Editable") || Boolean.parseBoolean(asJsonObject.get("Config_Editable").getAsString());
-            Augustus.getInstance().setConfigEditingEnabled(true);
-            ClickGuiScreen.configEditable = flag;
-            ClickGuiScreen.protectedConfigCreator = false;
-            JsonObject asJsonObject2 = json.get("Configuration").getAsJsonObject();
-            ModuleSettingsConfigSection.abstractFeature.deserialize(JsonCodecRegistryHolder.GSON_SERIALIZER_PROVIDER, asJsonObject2, true, var -> shouldLoadProperty((ConfigProperty)var));
+         configSection = elem.getAsJsonObject();
+      } else if (looksLikeFlatModuleMap(json)) {
+         configSection = json;
+         if (report != null) {
+            report.markFallback("Missing 'Configuration' wrapper -> loaded root JSON directly as module map");
+         }
+      } else {
+         if (report != null) {
+            report.recordError("ConfigFormatV2", "Missing or invalid 'Configuration' JSON object in config", null);
+         }
+         return;
+      }
+
+      boolean editable = true;
+      JsonElement headerElem = json.get("Config_Header");
+      if (headerElem != null && headerElem.isJsonObject()) {
+         JsonObject headerObj = headerElem.getAsJsonObject();
+         editable = !headerObj.has("Config_Editable") || Boolean.parseBoolean(headerObj.get("Config_Editable").getAsString());
+      } else if (report != null) {
+         report.markFallback("Missing 'Config_Header' -> defaulted to Config_Version=2, Editable=true");
+      }
+
+      Augustus.getInstance().setConfigEditingEnabled(true);
+      ClickGuiScreen.configEditable = editable;
+      ClickGuiScreen.protectedConfigCreator = false;
+      final JsonObject targetSection = configSection;
+      ConfigLoadReport.runWithCurrent(report, () -> ModuleSettingsConfigSection.abstractFeature.deserialize(
+         JsonCodecRegistryHolder.GSON_SERIALIZER_PROVIDER,
+         targetSection,
+         true,
+         var -> shouldLoadProperty((ConfigProperty)var)
+      ));
+   }
+
+   private static boolean looksLikeFlatModuleMap(JsonObject json) {
+      if (json == null || json.entrySet().isEmpty()) {
+         return false;
+      }
+      for (Object obj : Augustus.getInstance().getModuleManager().getModules()) {
+         if (obj instanceof Module) {
+            String name = ((Module)obj).getName();
+            if (name != null && json.has(name) && json.get(name).isJsonObject()) {
+               return true;
+            }
          }
       }
+      return false;
    }
 
 }

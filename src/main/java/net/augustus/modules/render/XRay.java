@@ -60,14 +60,18 @@ public class XRay extends Module implements NightVisionListener, TickListener {
    @Override
    public void onEnable() {
       enabled = true;
-      mc.renderGlobal.loadRenderers();
+      if (mc.renderGlobal != null) {
+         mc.renderGlobal.loadRenderers();
+      }
       this.snapshotAntiXraySettings();
    }
 
    @Override
    public void onDisable() {
       enabled = false;
-      ((RenderGlobal)null).loadRenderers();
+      if (mc.renderGlobal != null) {
+         mc.renderGlobal.loadRenderers();
+      }
    }
 
    @Override

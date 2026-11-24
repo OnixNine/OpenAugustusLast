@@ -158,13 +158,13 @@ public class ColorSetting extends Setting {
    }
 
    private void onFadeAlphaPropertyChanged(int n) {
-      Color color = new Color((Integer)this.fc.getValue());
-      this.setFadeColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), n));
+      Color color = this.fadeColor != null ? this.fadeColor : new Color((Integer)this.fc.getValue());
+      this.setFadeColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), MathHelper.clamp_int(n, 0, 255)));
    }
 
    private void onPrimaryRgbPropertyChanged(Integer num) {
       Color color = new Color(num);
-      this.setPrimaryColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), this.getPrimaryAlpha()));
+      this.setPrimaryColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), MathHelper.clamp_int(this.getPrimaryAlpha(), 0, 255)));
    }
 
    public void setRainbowDistance(double rainbowDistance) {
@@ -329,9 +329,8 @@ public class ColorSetting extends Setting {
 
    public ColorSetting withDefaultPrimaryColor(Color color) {
       this.setPrimaryColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
-      IntegerProperty integerProperty = this.c;
-      Integer rgb = color.getRGB();
-      integerProperty.setDefaultValue(rgb);
+      this.c.setDefaultValue(this.toOpaqueRgb(color));
+      this.a.setDefaultValue(color.getAlpha());
       return this;
    }
 
@@ -409,7 +408,8 @@ public class ColorSetting extends Setting {
          this.setPrimaryAlpha(n13);
          this.renderYOffset += 27;
          Color color = new Color(Color.HSBtoRGB(this.primaryHsb[0], this.primaryHsb[1], this.primaryHsb[2]));
-         this.primaryColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), this.getPrimaryAlpha());
+         this.primaryColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), MathHelper.clamp_int(this.getPrimaryAlpha(), 0, 255));
+         this.c.setValue(this.toOpaqueRgb(this.primaryColor));
          int n16 = s + 40;
          int n17 = 25;
          n14 = n3 + n16;
@@ -510,7 +510,8 @@ public class ColorSetting extends Setting {
                n17 = 0;
                n16 += s + 50;
                Color color2 = new Color(Color.HSBtoRGB(this.fadeHsb[0], this.fadeHsb[1], this.fadeHsb[2]));
-               this.fadeColor = new Color(color2.getRed(), color2.getGreen(), color2.getBlue(), this.getFadeAlpha());
+               this.fadeColor = new Color(color2.getRed(), color2.getGreen(), color2.getBlue(), MathHelper.clamp_int(this.getFadeAlpha(), 0, 255));
+               this.fc.setValue(this.toOpaqueRgb(this.fadeColor));
             }
          }
 
@@ -587,8 +588,8 @@ public class ColorSetting extends Setting {
        super(module, doubleValue, str);
       IntegerProperty integerProperty = new IntegerProperty(this, "A", 0);
       Consumer consumer = obj -> {
-         Color color2 = new Color((Integer)this.c.getValue());
-         this.setPrimaryColor(new Color(color2.getRed(), color2.getGreen(), color2.getBlue(), (Integer)obj));
+         Color color2 = this.primaryColor != null ? this.primaryColor : new Color((Integer)this.c.getValue());
+         this.setPrimaryColor(new Color(color2.getRed(), color2.getGreen(), color2.getBlue(), MathHelper.clamp_int((Integer)obj, 0, 255)));
       };
       this.a = (IntegerProperty)integerProperty.withOnValueChanged(consumer);
       this.fa = (IntegerProperty)new IntegerProperty(this, "FA", 0).withOnValueChanged(obj2 -> this.onFadeAlphaPropertyChanged((int)obj2));
@@ -688,9 +689,8 @@ public class ColorSetting extends Setting {
 
    public ColorSetting withDefaultFadeColor(Color color) {
       this.setFadeColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
-      IntegerProperty fc2 = this.fc;
-      Integer rgb = color.getRGB();
-      fc2.setDefaultValue(rgb);
+      this.fc.setDefaultValue(this.toOpaqueRgb(color));
+      this.fa.setDefaultValue(color.getAlpha());
       return this;
    }
 
@@ -846,7 +846,7 @@ public class ColorSetting extends Setting {
 
    private void onFadeRgbPropertyChanged(Integer num) {
       Color color = new Color(num);
-      this.setFadeColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), this.getFadeAlpha()));
+      this.setFadeColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), MathHelper.clamp_int(this.getFadeAlpha(), 0, 255)));
    }
 
    public ColorSetting withDefaultRainbowSpeed(int defaultRainbowSpeed) {
@@ -868,6 +868,9 @@ public class ColorSetting extends Setting {
    public void setPrimaryColor(Color color) {
       this.primaryColor = color;
       this.setPrimaryAlpha(this.primaryColor.getAlpha());
+      if (this.c != null) {
+         this.c.setValue(this.toOpaqueRgb(this.primaryColor));
+      }
       Color.RGBtoHSB(this.primaryColor.getRed(), this.primaryColor.getGreen(), this.primaryColor.getBlue(), this.primaryHsb);
    }
 
@@ -965,6 +968,9 @@ public class ColorSetting extends Setting {
    public void setFadeColor(Color color) {
       this.fadeColor = color;
       this.setFadeAlpha(this.fadeColor.getAlpha());
+      if (this.fc != null) {
+         this.fc.setValue(this.toOpaqueRgb(this.fadeColor));
+      }
       Color.RGBtoHSB(this.fadeColor.getRed(), this.fadeColor.getGreen(), this.fadeColor.getBlue(), this.fadeHsb);
    }
 

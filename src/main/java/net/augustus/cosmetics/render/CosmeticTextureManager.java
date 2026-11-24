@@ -182,16 +182,12 @@ public class CosmeticTextureManager {
 
    public ResourceLocation getOrCreateResourceLocation(String str, String str2) {
       ResourceLocation location = (ResourceLocation)this.resourceLocations.get(str);
-      ResourceLocation location2 = location;
-      if (null != null) {
-         if (location == null) {
-            this.resourceLocations.put(str, location = new ResourceLocation(str2));
-         }
-
-         location2 = location;
+      if (location == null) {
+         location = new ResourceLocation(str2);
+         this.resourceLocations.put(str, location);
       }
 
-      return location2;
+      return location;
    }
 
    private void loadRemoteImage(String str, String str2, BufferedImage image, CosmeticImageProcessor cosmeticImageProcessor) {

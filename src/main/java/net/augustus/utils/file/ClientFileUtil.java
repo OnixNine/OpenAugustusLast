@@ -29,10 +29,23 @@ import net.minecraft.client.Minecraft;
 import org.apache.commons.io.FileUtils;
 
 public class ClientFileUtil {
-   public static final String WORKING_DIR = System.getProperty("user.dir").endsWith(File.separator)
-      ? System.getProperty("user.dir")
-      : System.getProperty("user.dir") + File.separator;
+   public static final String WORKING_DIR = resolveWorkingDir();
    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+   private static String resolveWorkingDir() {
+      String base = System.getProperty("user.dir");
+      try {
+         Minecraft mc = Minecraft.getMinecraft();
+         if (mc != null && mc.mcDataDir != null) {
+            base = mc.mcDataDir.getAbsolutePath();
+         }
+      } catch (Throwable ignored) {
+      }
+      if (base == null || base.isEmpty()) {
+         base = ".";
+      }
+      return base.endsWith(File.separator) ? base : base + File.separator;
+   }
 
    public static void writeJsonArray(String str, String str2, JsonArray array) {
       writeJsonArray(str, str2, array, GsonConstants.PRETTY_GSON);

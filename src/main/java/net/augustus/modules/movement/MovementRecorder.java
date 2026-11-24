@@ -26,12 +26,12 @@ public class MovementRecorder extends Module {
 
    @Override
    public void onEnable() {
-      ((net.minecraft.util.Timer)null).timerSpeed = 1.0F;
+      mc.getTimer().timerSpeed = 1.0F;
    }
 
    @Override
    public void onDisable() {
-      ((net.minecraft.util.Timer)null).timerSpeed = 1.0F;
+      mc.getTimer().timerSpeed = 1.0F;
    }
 
    @Override

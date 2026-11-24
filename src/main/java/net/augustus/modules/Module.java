@@ -84,7 +84,7 @@ public abstract class Module extends AbstractFeature implements MC, Comparable {
       Consumer<Boolean> consumer2 = bool2 -> this.setLoadFromConfig(bool2);
       this.loadFromConfigProperty = (BooleanProperty)booleanProperty2.withOnValueChanged(consumer2);
       BooleanProperty booleanProperty3 = new BooleanProperty(this, "M_A", true);
-      Consumer<Boolean> consumer3 = bool3 -> this.onTogglePropertyChanged(bool3);
+      Consumer<Boolean> consumer3 = bool3 -> this.setShowInArrayList(bool3);
       this.showInArrayListProperty = (BooleanProperty)booleanProperty3.withOnValueChanged(consumer3);
       BooleanProperty booleanProperty4 = new BooleanProperty(this, "M_S", true);
       Consumer<Boolean> consumer4 = bool4 -> this.setToggleSoundEnabled(bool4);
@@ -136,7 +136,7 @@ public abstract class Module extends AbstractFeature implements MC, Comparable {
       Consumer<Boolean> consumer2 = bool2 -> this.setLoadFromConfig(bool2);
       this.loadFromConfigProperty = (BooleanProperty)booleanProperty2.withOnValueChanged(consumer2);
       BooleanProperty booleanProperty3 = new BooleanProperty(this, "M_A", true);
-      Consumer<Boolean> consumer3 = bool3 -> this.onTogglePropertyChanged(bool3);
+      Consumer<Boolean> consumer3 = bool3 -> this.setShowInArrayList(bool3);
       this.showInArrayListProperty = (BooleanProperty)booleanProperty3.withOnValueChanged(consumer3);
       BooleanProperty booleanProperty4 = new BooleanProperty(this, "M_S", true);
       Consumer<Boolean> consumer4 = bool4 -> this.setToggleSoundEnabled(bool4);
@@ -175,7 +175,7 @@ public abstract class Module extends AbstractFeature implements MC, Comparable {
       this.color = color2;
       this.categorys = categorys2;
       this.sessionExpireTimeMs = this.lastToggleTimeMs + 171000000L;
-      this.setLoadFromConfig(this.categorys != Categorys.RENDER);
+      this.setLoadFromConfig(true);
       Augustus.getInstance().getModuleRegistry().getModules().add(this);
       this.alwaysEnabled = false;
       this.registerInCategory();
@@ -190,7 +190,7 @@ public abstract class Module extends AbstractFeature implements MC, Comparable {
       Consumer<Boolean> consumer2 = bool2 -> this.setLoadFromConfig(bool2);
       this.loadFromConfigProperty = (BooleanProperty)booleanProperty2.withOnValueChanged(consumer2);
       booleanProperty2 = new BooleanProperty(this, "M_A", true);
-      Consumer<Boolean> consumer3 = bool3 -> this.onTogglePropertyChanged(bool3);
+      Consumer<Boolean> consumer3 = bool3 -> this.setShowInArrayList(bool3);
       this.showInArrayListProperty = (BooleanProperty)booleanProperty2.withOnValueChanged(consumer3);
       BooleanProperty booleanProperty3 = new BooleanProperty(this, "M_S", true);
       Consumer<Boolean> consumer4 = bool4 -> this.setToggleSoundEnabled(bool4);
@@ -228,7 +228,7 @@ public abstract class Module extends AbstractFeature implements MC, Comparable {
       this.displayName = str;
       this.color = color2;
       this.categorys = categorys2;
-      this.setLoadFromConfig(this.categorys != Categorys.RENDER);
+      this.setLoadFromConfig(true);
       this.setShowInArrayList(false);
       Augustus.getInstance().getModuleRegistry().getModules().add(this);
       this.alwaysEnabled = true;

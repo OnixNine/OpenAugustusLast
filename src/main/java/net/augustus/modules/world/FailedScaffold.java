@@ -435,7 +435,7 @@ public class FailedScaffold extends Module implements TickListener, MoveInputLis
    }
 
    private double getPitchDeltaScore(ScaffoldRaycastResult scaffoldRaycastResult) {
-      return (double)Math.abs(scaffoldRaycastResult.pitch - ((Rotation)null).pitch);
+      return (double)Math.abs(scaffoldRaycastResult.pitch - ClientManagers.rotationController.getPreviousRotation().pitch);
    }
 
    private double getHitCenterOffset(ScaffoldRaycastResult scaffoldRaycastResult, float f, Vec3 vec) {

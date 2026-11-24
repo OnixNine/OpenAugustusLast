@@ -57,8 +57,8 @@ public class MinecraftBridgeImpl implements MinecraftBridge {
 
    @Override
    public String getUsername() {
-      Minecraft.getMinecraft();
-      return ((net.minecraft.util.Session)null).getUsername();
+      Session session = Minecraft.getMinecraft().getSession();
+      return session != null ? session.getUsername() : "";
    }
 
    @Override

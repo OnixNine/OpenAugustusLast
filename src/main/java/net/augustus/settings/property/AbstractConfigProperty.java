@@ -84,7 +84,7 @@ public abstract class AbstractConfigProperty implements ConfigProperty {
    }
 
    public void applyValue(Object obj) {
-      if (this.onValueChanged != null && obj != this.getValue()) {
+      if (this.onValueChanged != null && !java.util.Objects.equals(obj, this.getValue())) {
          this.invokeConsumerSafely(this.onValueChanged, obj);
       }
 

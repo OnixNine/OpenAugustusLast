@@ -100,6 +100,7 @@ public class MiniMap extends Module implements TickListener, RenderListener, Pac
 
    @Override
    public void updateEventSubscriptions() {
+      this.toggleEventSubscription(17);
       this.toggleEventSubscription(32);
       this.toggleEventSubscription(26);
       this.toggleEventSubscription(55);

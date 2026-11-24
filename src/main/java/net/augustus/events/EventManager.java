@@ -22,7 +22,7 @@ public class EventManager {
             stringWriter.close();
             writer.close();
             if (str != null) {
-               str = str.substring(0, Math.min(str.length() - 1, 1000));
+               System.err.println("[EventManager] Unhandled listener exception:\n" + str.substring(0, Math.min(str.length(), 1500)));
             }
 
             lastExceptionReportTime = currentTimeMs;

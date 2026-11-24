@@ -122,7 +122,9 @@ public final class Aes256Ecb {
 
    public byte[] decryptPkcs7(byte[] input, int offset, int length) {
       if (length <= 0 || (length % BLOCK_SIZE) != 0) {
-         throw new IllegalArgumentException("Invalid AES ciphertext length: " + length);
+         throw new IllegalArgumentException(
+            "Invalid AES ciphertext length: " + length + " bytes (must be a positive multiple of 16; remainder=" + (length % BLOCK_SIZE) + ")"
+         );
       }
       byte[] out = new byte[length];
       for (int pos = 0; pos < length; pos += BLOCK_SIZE) {
@@ -130,14 +132,59 @@ public final class Aes256Ecb {
       }
       int pad = out[length - 1] & 0xFF;
       if (pad < 1 || pad > BLOCK_SIZE) {
-         throw new IllegalArgumentException("Invalid PKCS#7 padding value: " + pad);
+         throw new IllegalArgumentException(
+            "Invalid PKCS#7 padding byte at end of ciphertext: 0x" + String.format("%02X", pad) + " (" + pad + "), expected 1..16 (wrong key, non-standard padding, or corrupted final block)"
+         );
       }
       for (int i = length - pad; i < length; i++) {
-         if ((out[i] & 0xFF) != pad) {
-            throw new IllegalArgumentException("Corrupted PKCS#7 padding byte at offset " + i);
+         int b = out[i] & 0xFF;
+         if (b != pad) {
+            throw new IllegalArgumentException(
+               "Corrupted PKCS#7 padding byte at offset " + i + " of " + length + ": expected 0x" + String.format("%02X", pad) + ", found 0x" + String.format("%02X", b)
+            );
          }
       }
       return Arrays.copyOf(out, length - pad);
+   }
+
+   /**
+    * Lenient AES-256-ECB decryption used strictly as a recovery fallback:
+    * decrypts all complete 16-byte blocks without throwing on invalid PKCS#7 padding or truncated tails.
+    */
+   public byte[] decryptRawBlocks(byte[] input, int offset, int length) {
+      if (input == null || length < BLOCK_SIZE) {
+         return new byte[0];
+      }
+      int usable = (length / BLOCK_SIZE) * BLOCK_SIZE;
+      byte[] out = new byte[usable];
+      for (int pos = 0; pos < usable; pos += BLOCK_SIZE) {
+         decryptBlock(input, offset + pos, out, pos);
+      }
+      // Strip valid PKCS#7 padding if intact
+      int pad = out[usable - 1] & 0xFF;
+      if (pad >= 1 && pad <= BLOCK_SIZE) {
+         boolean validPkcs7 = true;
+         for (int i = usable - pad; i < usable; i++) {
+            if ((out[i] & 0xFF) != pad) {
+               validPkcs7 = false;
+               break;
+            }
+         }
+         if (validPkcs7) {
+            return Arrays.copyOf(out, usable - pad);
+         }
+      }
+      // Otherwise trim trailing NUL/control padding bytes (0x00..0x10)
+      int end = usable;
+      while (end > 0) {
+         int b = out[end - 1] & 0xFF;
+         if (b == 0x00 || (b >= 0x01 && b <= 0x10 && b != '\t' && b != '\n' && b != '\r')) {
+            end--;
+         } else {
+            break;
+         }
+      }
+      return Arrays.copyOf(out, end);
    }
 
    private void encryptBlock(byte[] in, int inOff, byte[] out, int outOff) {

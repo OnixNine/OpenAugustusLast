@@ -3241,7 +3241,7 @@ if (!this.isTellyBridgeEnabled() || this.shouldRotateBackwardInTelly()) {
    }
 
    private double getPitchDeltaFromNull(float[] floats) {
-      return (double)Math.abs(floats[0] - ((Rotation)null).pitch);
+      return (double)Math.abs(floats[0] - ClientManagers.rotationController.getPreviousRotation().pitch);
    }
 
    private double getPitchDeltaScore(ScaffoldRaycastResult scaffoldRaycastResult) {

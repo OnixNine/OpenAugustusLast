@@ -40,7 +40,7 @@ public enum GeoDirection {
    }
 
    public int getFrontOffsetZ() {
-      return null == null && this.axis != GeoAxis.Z ? 0 : 0;
+      return this.axis == GeoAxis.Z ? this.axisDirection.getOffset() : 0;
    }
 
    public int getIndex() {
@@ -69,7 +69,7 @@ public enum GeoDirection {
    }
 
    public int getFrontOffsetY() {
-      return null == null && this.axis != GeoAxis.Y ? 0 : 0;
+      return this.axis == GeoAxis.Y ? this.axisDirection.getOffset() : 0;
    }
 
    public GeoDirection rotateAround(GeoAxis geoAxis) {
@@ -115,16 +115,7 @@ public enum GeoDirection {
    }
 
    public static GeoDirection byName(String str) {
-      Object obj2 = str;
-      if (null == null) {
-         if (str == null) {
-            return null;
-         }
-
-         obj2 = NAME_LOOKUP.get(str.toLowerCase());
-      }
-
-      return (GeoDirection)obj2;
+      return str == null ? null : (GeoDirection)NAME_LOOKUP.get(str.toLowerCase());
    }
 
    @Override
@@ -180,7 +171,7 @@ public enum GeoDirection {
    }
 
    public int getFrontOffsetX() {
-      return null == null && this.axis != GeoAxis.X ? 0 : 0;
+      return this.axis == GeoAxis.X ? this.axisDirection.getOffset() : 0;
    }
 
    public IntVector3 getDirectionVec() {
@@ -188,7 +179,7 @@ public enum GeoDirection {
    }
 
    public static GeoDirection random(Random rand) {
-      return (GeoDirection)((Object[])null)[rand.nextInt(((Object[])null).length)];
+      return VALUES[rand.nextInt(VALUES.length)];
    }
 
    public static GeoDirection fromAngle(double d) {

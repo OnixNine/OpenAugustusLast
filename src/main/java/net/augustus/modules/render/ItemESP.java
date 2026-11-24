@@ -89,6 +89,7 @@ public class ItemESP extends Module implements RenderListener, TickListener {
 
    @Override
    public void updateEventSubscriptions() {
+      this.toggleEventSubscription(40);
    }
 
    public static boolean isItemWhitelisted(Item item) {

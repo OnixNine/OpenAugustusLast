@@ -33,7 +33,7 @@ public class FullBright extends Module implements NightVisionListener {
 
    @Override
    public void onDisable() {
-      ((GameSettings)null).gammaSetting = Math.min(this.savedGamma, 1.0F);
+      mc.gameSettings.gammaSetting = Math.min(this.savedGamma, 1.0F);
    }
 
    @Override

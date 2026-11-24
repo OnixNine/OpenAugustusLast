@@ -88,6 +88,11 @@ public class ModuleSettingsConfigSection extends AbstractFeatureConfigFile {
       return "Modules_Settings";
    }
 
+   @Override
+   public boolean alwaysReserializeOnSave() {
+      return true;
+   }
+
    private static JsonObject deepMergeJson(JsonObject json, JsonObject json2) {
       JsonObject json3 = new JsonObject();
 

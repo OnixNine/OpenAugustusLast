@@ -67,13 +67,13 @@ public class Tracers extends Module implements OrientCameraListener, RenderListe
 
    @Override
    public void onEnable() {
-      this.savedViewBobbing = ((GameSettings)null).viewBobbing;
-      ((GameSettings)null).viewBobbing = false;
+      this.savedViewBobbing = mc.gameSettings.viewBobbing;
+      mc.gameSettings.viewBobbing = false;
    }
 
    @Override
    public void onDisable() {
-      ((GameSettings)null).viewBobbing = this.savedViewBobbing;
+      mc.gameSettings.viewBobbing = this.savedViewBobbing;
       this.targetEntities.clear();
    }
 

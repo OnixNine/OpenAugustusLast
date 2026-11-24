@@ -72,6 +72,7 @@ public class MoveHelper extends Module implements LoadWorldListener, MoveInputLi
 
    @Override
    public void updateEventSubscriptions() {
+      this.toggleEventSubscription(1);
       this.toggleEventSubscription(21, 1000);
       this.toggleEventSubscription(40);
       this.toggleEventSubscription(35);
