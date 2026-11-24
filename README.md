@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/badge/Discord-Skid%20Solutions-18181b?style=for-the-badge&logo=discord&logoColor=ffffff&labelColor=09090b" alt="Discord" />
   </a>
   <img src="https://img.shields.io/badge/Version-b4.23.3-27272a?style=for-the-badge&labelColor=09090b" alt="Version b4.23.3" />
-  <img src="https://img.shields.io/badge/Java-8-3f3f46?style=for-the-badge&logo=openjdk&logoColor=ffffff&labelColor=09090b" alt="Java 21" />
+  <img src="https://img.shields.io/badge/Java-21-3f3f46?style=for-the-badge&logo=openjdk&logoColor=ffffff&labelColor=09090b" alt="Java 21" />
   <img src="https://img.shields.io/badge/Gradle-8.14.3-52525b?style=for-the-badge&logo=gradle&logoColor=ffffff&labelColor=09090b" alt="Gradle 8.14.3" />
 </p>
 
