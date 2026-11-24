@@ -1,0 +1,374 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+}
+
+group = 'net.augustus'
+version = 'b4.23.3'
+
+def currentOs = OperatingSystem.current()
+def osClassifier = currentOs.isWindows() ? 'windows' : (currentOs.isMacOsX() ? 'osx' : 'linux')
+def jfxClassifier = currentOs.isWindows() ? 'win' : (currentOs.isMacOsX() ? 'mac' : 'linux')
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Minecraft'
+        url = uri('https://libraries.minecraft.net/')
+        content {
+            includeGroup 'com.mojang'
+            includeGroup 'com.ibm.icu'
+            includeGroup 'com.paulscode'
+            includeGroup 'org.lwjgl.lwjgl'
+        }
+    }
+    maven {
+        name = 'ViaVersion'
+        url = uri('https://repo.viaversion.com')
+    }
+    maven {
+        name = 'Lenni0451'
+        url = uri('https://maven.lenni0451.net/releases')
+    }
+    maven {
+        name = 'Wagyourtail'
+        url = uri('https://maven.wagyourtail.xyz/releases')
+    }
+}
+
+configurations {
+    natives
+    jvmdgTool {
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 21)
+        }
+    }
+    java8Downgrade {
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 21)
+        }
+    }
+}
+
+def downgradedDepsDir = layout.buildDirectory.dir('downgraded-deps')
+
+def downgradeJava8Deps = tasks.register('downgradeJava8Deps') {
+    group = 'build'
+    description = 'Downgrades Java 11+/17+ Gradle dependencies (ViaVersion, OpenJFX) to Java 8 bytecode.'
+    inputs.files(configurations.java8Downgrade)
+    outputs.dir(downgradedDepsDir)
+
+    doLast {
+        def outDir = downgradedDepsDir.get().asFile
+        outDir.mkdirs()
+        def jvmdgWorkDir = layout.buildDirectory.dir('tmp/jvmdg').get().asFile
+        jvmdgWorkDir.mkdirs()
+
+        def inputFiles = configurations.java8Downgrade.resolve()
+        def extraCp = configurations.compileClasspath.resolve().findAll { !it.absolutePath.startsWith(outDir.absolutePath) }
+        def allCp = (inputFiles + extraCp).unique()
+        def expectedNames = new HashSet<String>()
+        def cpString = allCp.collect { it.absolutePath }.join(File.pathSeparator)
+
+        inputFiles.each { File jarFile ->
+            if (!jarFile.name.endsWith('.jar')) {
+                return
+            }
+            def outName = jarFile.name.replace('.jar', '-java8.jar')
+            expectedNames.add(outName)
+            def outFile = new File(outDir, outName)
+            if (!outFile.exists() || outFile.lastModified() < jarFile.lastModified()) {
+                javaexec {
+                    workingDir = jvmdgWorkDir
+                    classpath = configurations.jvmdgTool
+                    mainClass = 'xyz.wagyourtail.jvmdg.compile.ZipDowngrader'
+                    jvmArgs '-Djava.util.concurrent.ForkJoinPool.common.parallelism=1'
+                    args '52', jarFile.absolutePath, outFile.absolutePath, cpString
+                }
+            }
+        }
+
+        outDir.listFiles()?.each { File existing ->
+            if (!expectedNames.contains(existing.name)) {
+                existing.delete()
+            }
+        }
+    }
+}
+
+dependencies {
+    // Compile-time annotations & Lombok
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.2'
+    compileOnly 'org.jetbrains:annotations:24.0.1'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Minecraft 1.8.9 standard libraries
+    implementation 'com.mojang:authlib:1.5.21'
+    implementation 'com.ibm.icu:icu4j-core-mojang:51.2'
+    implementation 'com.paulscode:codecjorbis:20101023'
+    implementation 'com.paulscode:codecwav:20101023'
+    implementation 'com.paulscode:libraryjavasound:20101123'
+    implementation 'com.paulscode:librarylwjglopenal:20100824'
+    implementation 'com.paulscode:soundsystem:20120107'
+    implementation 'org.jcraft:jorbis:0.0.17'
+
+    implementation 'org.lwjgl.lwjgl:lwjgl:2.9.4-nightly-20150209'
+    implementation 'org.lwjgl.lwjgl:lwjgl_util:2.9.4-nightly-20150209'
+    natives "org.lwjgl.lwjgl:lwjgl-platform:2.9.4-nightly-20150209:natives-${osClassifier}"
+    runtimeOnly "org.lwjgl.lwjgl:lwjgl-platform:2.9.4-nightly-20150209:natives-${osClassifier}"
+
+    implementation('net.java.jinput:jinput:2.0.9') {
+        exclude group: 'net.java.jinput', module: 'jinput-platform'
+    }
+    natives "net.java.jinput:jinput:2.0.9:natives-all"
+    runtimeOnly "net.java.jinput:jinput:2.0.9:natives-all"
+    implementation 'net.java.jutils:jutils:1.0.0'
+
+    implementation 'javax.vecmath:vecmath:1.5.2'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    implementation 'com.google.guava:guava:33.6.0-jre'
+    implementation 'com.google.code.gson:gson:2.13.1'
+    implementation 'commons-io:commons-io:2.18.0'
+    implementation 'commons-codec:commons-codec:1.18.0'
+    implementation 'commons-logging:commons-logging:1.2'
+    implementation 'org.apache.commons:commons-lang3:3.17.0'
+    implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+    implementation 'org.apache.httpcomponents:httpcore:4.4.16'
+    implementation 'org.apache.logging.log4j:log4j-api:2.24.3'
+    implementation 'org.apache.logging.log4j:log4j-core:2.24.3'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
+
+    implementation 'io.netty:netty-all:4.1.118.Final'
+    implementation 'com.github.oshi:oshi-core:6.6.3'
+    implementation 'net.java.dev.jna:jna:5.15.0'
+    implementation 'net.java.dev.jna:jna-platform:5.15.0'
+    implementation 'it.unimi.dsi:fastutil:8.5.15'
+    implementation 'org.jctools:jctools-core:4.0.5'
+
+    // Client libraries
+    implementation 'com.microsoft.onnxruntime:onnxruntime:1.20.0'
+    implementation 'org.yaml:snakeyaml:2.5'
+    implementation 'org.json:json:20160810'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-gson:0.13.0'
+    implementation('org.slick2d:slick2d-core:1.0.2') {
+        exclude group: 'javax.jnlp', module: 'jnlp-api'
+        exclude group: 'org.lwjgl.lwjgl'
+        exclude group: 'org.jcraft'
+    }
+
+    // JvmDowngrader CLI tool & Java 8 runtime stubs for downgraded ViaVersion / OpenJFX bytecode
+    jvmdgTool 'xyz.wagyourtail.jvmdowngrader:jvmdowngrader:2.0.1'
+    jvmdgTool 'xyz.wagyourtail.jvmdowngrader:jvmdowngrader-java-api:2.0.1'
+    implementation 'xyz.wagyourtail.jvmdowngrader:jvmdowngrader-java-api:2.0.1:downgraded-8'
+
+    // Java 11+/17+ dependencies downgraded automatically to Java 8 bytecode via downgradeJava8Deps
+    java8Downgrade('com.viaversion:viaversion-common:5.7.1') { transitive = false }
+    java8Downgrade('com.viaversion:viabackwards-common:5.7.1') { transitive = false }
+    java8Downgrade('com.viaversion:viarewind-common:4.0.14') { transitive = false }
+    java8Downgrade('com.viaversion:viaaprilfools-common:4.0.8') { transitive = false }
+    java8Downgrade('com.viaversion:nbt:5.1.2') { transitive = false }
+
+    java8Downgrade("org.openjfx:javafx-base:11.0.2:${jfxClassifier}") { transitive = false }
+    java8Downgrade("org.openjfx:javafx-graphics:11.0.2:${jfxClassifier}") { transitive = false }
+    java8Downgrade("org.openjfx:javafx-controls:11.0.2:${jfxClassifier}") { transitive = false }
+    java8Downgrade("org.openjfx:javafx-fxml:11.0.2:${jfxClassifier}") { transitive = false }
+    java8Downgrade("org.openjfx:javafx-media:11.0.2:${jfxClassifier}") { transitive = false }
+    java8Downgrade("org.openjfx:javafx-swing:11.0.2:${jfxClassifier}") { transitive = false }
+    java8Downgrade("org.openjfx:javafx-web:11.0.2:${jfxClassifier}") { transitive = false }
+
+    implementation files(fileTree(downgradedDepsDir) { include '*.jar' }).builtBy(downgradeJava8Deps)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    dependsOn downgradeJava8Deps
+    options.encoding = 'UTF-8'
+    options.fork = true
+    options.forkOptions.memoryInitialSize = '1g'
+    options.forkOptions.memoryMaximumSize = '4g'
+    options.warnings = false
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+// --- Standard MCP Gradle tasks ---
+
+def nativesDir = layout.buildDirectory.dir('natives')
+def runDir = file("${projectDir}/run")
+def defaultAssetsDir = project.hasProperty('assetsDir')
+        ? file(project.property('assetsDir'))
+        : new File(runDir, 'assets')
+
+def extractNatives = tasks.register('extractNatives', Sync) {
+    group = 'minecraft'
+    description = 'Extracts LWJGL and JInput native libraries for the current OS.'
+    into nativesDir
+    from {
+        configurations.natives.resolve().collect { zipTree(it) }
+    }
+    exclude 'META-INF/**'
+}
+
+tasks.named('classes') {
+    dependsOn extractNatives
+}
+
+def downloadAssets = tasks.register('downloadAssets') {
+    group = 'minecraft'
+    description = 'Downloads the Minecraft 1.8 asset index and missing asset objects into run/assets.'
+    onlyIf { !project.hasProperty('skipAssets') }
+
+    doLast {
+        def assetsDir = defaultAssetsDir
+        def indexesDir = new File(assetsDir, 'indexes')
+        def objectsDir = new File(assetsDir, 'objects')
+        indexesDir.mkdirs()
+        objectsDir.mkdirs()
+
+        def indexFile = new File(indexesDir, '1.8.json')
+        if (!indexFile.exists()) {
+            logger.lifecycle('Downloading Minecraft 1.8 asset index...')
+            def manifestUrl = new URL('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json')
+            def manifest = new groovy.json.JsonSlurper().parse(manifestUrl)
+            def v189 = manifest.versions.find { it.id == '1.8.9' }
+            if (v189 == null) {
+                throw new GradleException('Could not locate Minecraft 1.8.9 in Mojang version manifest.')
+            }
+            def versionMeta = new groovy.json.JsonSlurper().parse(new URL(v189.url))
+            def assetIndexUrl = new URL(versionMeta.assetIndex.url)
+            indexFile.bytes = assetIndexUrl.bytes
+        }
+
+        def indexJson = new groovy.json.JsonSlurper().parse(indexFile)
+        def objects = indexJson.objects as Map<String, Map>
+        def missing = []
+        objects.each { name, info ->
+            String hash = info.hash
+            String prefix = hash.substring(0, 2)
+            File target = new File(objectsDir, "${prefix}/${hash}")
+            if (!target.exists() || target.length() != (info.size as long)) {
+                missing << [hash: hash, prefix: prefix, target: target]
+            }
+        }
+
+        if (!missing.isEmpty()) {
+            logger.lifecycle("Downloading ${missing.size()} missing Minecraft 1.8 assets...")
+            missing.each { entry ->
+                File target = entry.target
+                target.parentFile.mkdirs()
+                def url = new URL("https://resources.download.minecraft.net/${entry.prefix}/${entry.hash}")
+                url.withInputStream { input ->
+                    target.withOutputStream { output -> output << input }
+                }
+            }
+        }
+    }
+}
+
+def prepareRunDir = tasks.register('prepareRunDir') {
+    group = 'minecraft'
+    description = 'Prepares the MCP run/ working directory.'
+    doLast {
+        runDir.mkdirs()
+        defaultAssetsDir.mkdirs()
+    }
+}
+
+tasks.register('runClient', JavaExec) {
+    group = 'minecraft'
+    description = 'Runs the Minecraft 1.8.9 OpenAugustus client.'
+    dependsOn tasks.named('classes'), extractNatives, prepareRunDir, downloadAssets
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+
+    mainClass = 'net.minecraft.client.main.Main'
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = runDir
+
+    jvmArgs "-Djava.library.path=${nativesDir.get().asFile.absolutePath}",
+            "-Dorg.lwjgl.librarypath=${nativesDir.get().asFile.absolutePath}",
+            "-Dnet.java.games.input.librarypath=${nativesDir.get().asFile.absolutePath}",
+            '-Xms512m',
+            '-Xmx2g'
+
+    args '--version', '1.8.9',
+         '--accessToken', '0',
+         '--gameDir', runDir.absolutePath,
+         '--assetsDir', defaultAssetsDir.absolutePath,
+         '--assetIndex', '1.8',
+         '--userProperties', '{}'
+
+    if (project.hasProperty('username')) {
+        args '--username', project.property('username').toString()
+    }
+}
+
+tasks.register('runClientMinecraftDir', JavaExec) {
+    group = 'minecraft'
+    description = 'Runs OpenAugustus using the system .minecraft game and assets directory.'
+    dependsOn tasks.named('classes'), extractNatives
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+
+    mainClass = 'StartMinecraftDirectory'
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = runDir
+
+    jvmArgs "-Djava.library.path=${nativesDir.get().asFile.absolutePath}",
+            "-Dorg.lwjgl.librarypath=${nativesDir.get().asFile.absolutePath}",
+            "-Dnet.java.games.input.librarypath=${nativesDir.get().asFile.absolutePath}",
+            '-Xms512m',
+            '-Xmx2g'
+
+    if (project.hasProperty('username')) {
+        args '--username', project.property('username').toString()
+    }
+}
+
+tasks.register('prepareIde') {
+    group = 'ide'
+    description = 'Prepares downgraded dependencies, natives, and compiles the client for IDE import.'
+    dependsOn downgradeJava8Deps, extractNatives, tasks.named('compileJava')
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes 'Main-Class': 'Start'
+    }
+}
+
+idea {
+    project {
+        languageLevel = '1.8'
+        targetBytecodeVersion = JavaVersion.VERSION_1_8
+    }
+    module {
+        downloadJavadoc = false
+        downloadSources = true
+    }
+}
