@@ -20,17 +20,16 @@ public class ConfigFormatV2 implements ModuleConfigCodec {
 
    @Override
    public String[] readHeaderInfo(JsonObject json) {
-      Set entries = json.get("Config_Header").getAsJsonObject().entrySet();
-      ArrayList list = new ArrayList();
-
-      for (Object obj : entries) {
-         Entry entry = (Entry)obj;
-         if (!((String)entry.getKey()).equals("Config_Version")) {
-            list.add(((JsonElement)entry.getValue()).getAsString());
-         }
+      if (json == null || !json.has("Config_Header") || !json.get("Config_Header").isJsonObject()) {
+         return null;
       }
-
-      return (String[])list.toArray(new String[0]);
+      JsonObject header = json.getAsJsonObject("Config_Header");
+      String name = header.has("Config_Name") ? header.get("Config_Name").getAsString() : "";
+      String date = header.has("Config_Date") ? header.get("Config_Date").getAsString() : "";
+      String time = header.has("Config_Time") ? header.get("Config_Time").getAsString() : "";
+      String editable = header.has("Config_Editable") ? header.get("Config_Editable").getAsString() : "true";
+      String author = header.has("Config_Author") ? header.get("Config_Author").getAsString() : "";
+      return new String[]{name, date, time, editable, author};
    }
 
    private static Boolean shouldLoadProperty(ConfigProperty configProperty) {

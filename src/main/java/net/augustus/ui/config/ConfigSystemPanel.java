@@ -107,13 +107,14 @@ public class ConfigSystemPanel extends ClickGuiWindow {
       try {
          String configName = fileName.substring(0, fileName.length() - 5);
          String[] header = Augustus.getInstance().getConfigManager().moduleConfigStorage.getConfigHeaderInfo(configName, "configs");
-         String date = header == null ? "" : header[1];
-         String time = header == null ? "" : header[2];
+         String date = header != null && header.length > 1 ? header[1] : "";
+         String time = header != null && header.length > 2 ? header[2] : "";
          String editableStr = header != null && header.length == 5 ? header[3] : "true";
-         String author = header != null ? (header.length == 5 ? header[4] : header[3]) : "";
+         String author = header != null && header.length >= 4 ? (header.length == 5 ? header[4] : header[3]) : "";
          this.userConfigs.stream().filter(item -> item.getConfigName().equals(configName)).findAny().ifPresent(this.userConfigs::remove);
          this.userConfigs.add(new UserConfigListItem(configName, author, date, time, Boolean.parseBoolean(editableStr)));
       } catch (Exception e) {
+         e.printStackTrace();
          if (mc.theWorld != null) {
             notifyConfigStatus("Failed to load config: " + file.getName(), NotificationLevel.ERROR);
          }

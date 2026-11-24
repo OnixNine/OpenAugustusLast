@@ -59,6 +59,8 @@ public class ModuleConfigStorage extends JsonConfigFile {
          byte[] decrypted = cipher.doFinal(bytes, ENCRYPTED_MAGIC_HEADER.length, bytes.length - ENCRYPTED_MAGIC_HEADER.length);
          return new String(decrypted, StandardCharsets.UTF_8);
       } catch (Exception e) {
+         System.err.println("Failed to decrypt AES-256-ECB config payload (" + bytes.length + " bytes):");
+         e.printStackTrace();
          return "";
       }
    }
@@ -125,22 +127,31 @@ public class ModuleConfigStorage extends JsonConfigFile {
       }
       Integer version = this.readConfigVersion(json);
       if (version == null) {
+         System.err.println("Config missing Config_Version in Config_Header: " + configName);
+         if (notify) {
+            this.notifyConfigStatus("Invalid config header: §c" + configName, NotificationLevel.ERROR);
+         }
          return;
       }
       ModuleConfigCodec codec = this.formatCodecs.get(version);
-      if (codec != null) {
-         try {
-            long startTime = System.currentTimeMillis();
-            codec.applyConfig(json);
-            if (notify) {
-               long elapsed = System.currentTimeMillis() - startTime;
-               this.notifyConfigStatus("Config loaded: §c" + configName + " (" + elapsed + "ms)", NotificationLevel.INFO);
-               Augustus.getInstance().getModuleManager().sortModules();
-               ClientSounds.playSound(ClientSounds.AUGUSTUS_TEXTURE2);
-            }
-         } catch (Exception e) {
-            e.printStackTrace();
+      if (codec == null) {
+         System.err.println("Unsupported Config_Version " + version + " in config: " + configName);
+         if (notify) {
+            this.notifyConfigStatus("Unsupported config version (" + version + "): §c" + configName, NotificationLevel.ERROR);
          }
+         return;
+      }
+      try {
+         long startTime = System.currentTimeMillis();
+         codec.applyConfig(json);
+         if (notify) {
+            long elapsed = System.currentTimeMillis() - startTime;
+            this.notifyConfigStatus("Config loaded: §c" + configName + " (" + elapsed + "ms)", NotificationLevel.INFO);
+            Augustus.getInstance().getModuleManager().sortModules();
+            ClientSounds.playSound(ClientSounds.AUGUSTUS_TEXTURE2);
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
       }
    }
 

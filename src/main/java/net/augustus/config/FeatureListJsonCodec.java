@@ -46,6 +46,7 @@ public class FeatureListJsonCodec implements FeatureConfigSerializer {
 
          return json;
       } catch (Exception e) {
+         e.printStackTrace();
          return null;
       }
    }
@@ -61,6 +62,7 @@ public class FeatureListJsonCodec implements FeatureConfigSerializer {
 
          return true;
       } catch (Exception e) {
+         e.printStackTrace();
          return false;
       }
    }

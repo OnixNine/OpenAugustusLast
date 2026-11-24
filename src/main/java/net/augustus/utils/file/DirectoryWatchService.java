@@ -29,12 +29,12 @@ public class DirectoryWatchService {
          Path path3 = path.resolve((Path)watchEvent.context());
          if (kind.equals(StandardWatchEventKinds.ENTRY_CREATE)) {
             if (Files.isRegularFile(path3)) {
-               ClientFileUtil.waitForFileStable(path, Duration.ofMillis(300L), Duration.ofMillis(100L), Duration.ofSeconds(4L));
+               ClientFileUtil.waitForFileStable(path3, Duration.ofMillis(300L), Duration.ofMillis(100L), Duration.ofSeconds(4L));
                DirectoryWatcher.dispatchCreate(directoryWatcher, path3);
             }
          } else if (kind.equals(StandardWatchEventKinds.ENTRY_MODIFY)) {
             if (Files.isRegularFile(path3)) {
-               ClientFileUtil.waitForFileStable(path, Duration.ofMillis(300L), Duration.ofMillis(100L), Duration.ofSeconds(4L));
+               ClientFileUtil.waitForFileStable(path3, Duration.ofMillis(300L), Duration.ofMillis(100L), Duration.ofSeconds(4L));
                DirectoryWatcher.dispatchModify(directoryWatcher, path3);
             }
          } else if (kind.equals(StandardWatchEventKinds.ENTRY_DELETE)) {

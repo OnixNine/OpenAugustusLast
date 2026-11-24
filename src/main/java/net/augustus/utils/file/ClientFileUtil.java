@@ -7,11 +7,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -70,12 +69,10 @@ public class ClientFileUtil {
    public static void writeJsonArray(String str, String str2, JsonArray array, Gson gson) {
       ensureDirectory(str);
 
-      try {
+      try (BufferedWriter writer = Files.newBufferedWriter(new File(str, str2).toPath(), StandardCharsets.UTF_8)) {
          String str3 = gson.toJson(array);
-         BufferedWriter writer = new BufferedWriter(new FileWriter(new File(str, str2)));
          writer.write(str3);
          writer.flush();
-         writer.close();
       } catch (IOException e) {
          e.printStackTrace();
       }
@@ -91,11 +88,8 @@ public class ClientFileUtil {
       JsonArray array = null;
 
       for (int i = 0; i < 5; i++) {
-         FileReader fileReader = null;
-
-         try {
-            fileReader = new FileReader(file);
-            array = (JsonArray)GSON.fromJson(fileReader, JsonArray.class);
+         try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+            array = (JsonArray)GSON.fromJson(reader, JsonArray.class);
          } catch (Exception e) {
             try {
                if (runnable != null) {
@@ -106,13 +100,6 @@ public class ClientFileUtil {
 
             if (runnable != null) {
                System.err.println("Corrupted file: " + file.getAbsolutePath());
-            }
-         }
-
-         if (fileReader != null) {
-            try {
-               fileReader.close();
-            } catch (IOException e3) {
             }
          }
 
@@ -127,12 +114,10 @@ public class ClientFileUtil {
    public static void writeJsonObject(String str, String str2, JsonObject json, Gson gson) {
       ensureDirectory(str);
 
-      try {
+      try (BufferedWriter writer = Files.newBufferedWriter(new File(str, str2).toPath(), StandardCharsets.UTF_8)) {
          String str3 = gson.toJson(json);
-         BufferedWriter writer = new BufferedWriter(new FileWriter(new File(str, str2)));
          writer.write(str3);
          writer.flush();
-         writer.close();
       } catch (IOException e) {
          e.printStackTrace();
       }
@@ -236,11 +221,8 @@ public class ClientFileUtil {
       JsonObject json = null;
 
       for (int i = 0; i < 5; i++) {
-         FileReader fileReader = null;
-
-         try {
-            fileReader = new FileReader(file);
-            json = (JsonObject)GSON.fromJson(fileReader, JsonObject.class);
+         try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+            json = (JsonObject)GSON.fromJson(reader, JsonObject.class);
          } catch (Exception e) {
             try {
                if (runnable != null) {
@@ -251,13 +233,6 @@ public class ClientFileUtil {
 
             if (runnable != null) {
                System.err.println("Corrupted file: " + file.getAbsolutePath());
-            }
-         }
-
-         if (fileReader != null) {
-            try {
-               fileReader.close();
-            } catch (IOException e3) {
             }
          }
 

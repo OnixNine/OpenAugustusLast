@@ -7,8 +7,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -37,9 +37,13 @@ public class JsonFileStorageHandler {
          if (this.decoder != null) {
             elem = (JsonElement)gson.fromJson((String)this.decoder.apply(bytes), clazz);
          } else {
-            elem = (JsonElement)gson.fromJson(new String(bytes), clazz);
+            elem = (JsonElement)gson.fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
          }
       } catch (Exception e) {
+         if (file.exists()) {
+            System.err.println("Failed to read JSON file: " + file.getAbsolutePath());
+            e.printStackTrace();
+         }
          elem = supplier != null ? (JsonElement)supplier.get() : null;
       }
 
@@ -91,10 +95,10 @@ public class JsonFileStorageHandler {
             byte[] bytes = (byte[])this.encoder.apply(str);
             Files.write(file.toPath(), bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
          } else {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            writer.write(str);
-            writer.flush();
-            writer.close();
+            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+               writer.write(str);
+               writer.flush();
+            }
          }
       } catch (IOException e) {
          e.printStackTrace();
