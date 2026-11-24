@@ -10,20 +10,57 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketThreadUtil;
 
 public class ModuleConfigStorage extends JsonConfigFile {
+   private static final byte[] ENCRYPTED_MAGIC_HEADER = new byte[]{-82, 83, 1, 0};
+   private static final byte[] AES_KEY = new byte[]{
+      114, -27, 95, -64, 18, -101, 73, -38, 126, -9, 44, -87, 61, -122, 7, -55,
+      89, -16, 35, -78, 103, -41, 52, -94, 67, -128, 21, -63, 98, -11, 76, -49
+   };
    private final HashMap<Integer, ModuleConfigCodec> formatCodecs;
 
    public ModuleConfigStorage() {
       super(
          text -> ((String)text).getBytes(StandardCharsets.UTF_8),
-         bytes -> new String((byte[])bytes, StandardCharsets.UTF_8)
+         bytes -> decryptConfigBytes((byte[])bytes)
       );
       this.formatCodecs = new HashMap<>();
       this.formatCodecs.put(2, new ConfigFormatV2());
+   }
+
+   public static boolean hasEncryptedHeader(byte[] bytes) {
+      if (bytes == null || bytes.length < ENCRYPTED_MAGIC_HEADER.length) {
+         return false;
+      }
+      for (int i = 0; i < ENCRYPTED_MAGIC_HEADER.length; i++) {
+         if (bytes[i] != ENCRYPTED_MAGIC_HEADER[i]) {
+            return false;
+         }
+      }
+      return true;
+   }
+
+   public static String decryptConfigBytes(byte[] bytes) {
+      if (bytes == null || bytes.length == 0) {
+         return "";
+      }
+      if (!hasEncryptedHeader(bytes)) {
+         return new String(bytes, StandardCharsets.UTF_8);
+      }
+      try {
+         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+         cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(AES_KEY, "AES"));
+         byte[] decrypted = cipher.doFinal(bytes, ENCRYPTED_MAGIC_HEADER.length, bytes.length - ENCRYPTED_MAGIC_HEADER.length);
+         return new String(decrypted, StandardCharsets.UTF_8);
+      } catch (Exception e) {
+         return "";
+      }
    }
 
    @Override
@@ -45,9 +82,19 @@ public class ModuleConfigStorage extends JsonConfigFile {
       if (json == null) {
          if (notify) {
             File file = new File(this.getDirectoryPath() + subDir, configName + ".json");
-            String message = !file.exists()
-               ? "Config not found: §c" + configName
-               : "Failed to load config: §c" + configName;
+            String message;
+            if (!file.exists()) {
+               message = "Config not found: §c" + configName;
+            } else {
+               boolean encrypted = false;
+               try {
+                  encrypted = hasEncryptedHeader(Files.readAllBytes(file.toPath()));
+               } catch (Exception ignored) {
+               }
+               message = encrypted
+                  ? "Failed to decrypt config: §c" + configName
+                  : "Failed to load config: §c" + configName;
+            }
             this.notifyConfigStatus(message, NotificationLevel.ERROR);
          }
          return;
@@ -176,6 +223,9 @@ public class ModuleConfigStorage extends JsonConfigFile {
    private Integer readConfigVersion(JsonObject json) {
       if (json.has("Config_Header") && json.get("Config_Header").isJsonObject()) {
          JsonObject header = json.getAsJsonObject("Config_Header");
+         if (header.has("Config_Version")) {
+            return header.get("Config_Version").getAsInt();
+         }
          if (header.has("ConfigVersion")) {
             return header.get("ConfigVersion").getAsInt();
          }

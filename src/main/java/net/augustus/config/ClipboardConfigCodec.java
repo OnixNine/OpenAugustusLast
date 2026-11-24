@@ -60,16 +60,23 @@ public class ClipboardConfigCodec {
    }
 
    private static String decodePayload(String input) {
+      if (input == null) {
+         return "";
+      }
+      byte[] bytes = null;
       if (input.startsWith("Name_")) {
          int underscores = 0;
          for (int i = 0; i < input.length(); i++) {
             if (input.charAt(i) == '_' && ++underscores >= 2) {
-               byte[] decoded = Base64.getDecoder().decode(input.substring(i + 1));
-               return new String(decoded, StandardCharsets.UTF_8);
+               bytes = Base64.getDecoder().decode(input.substring(i + 1));
+               break;
             }
          }
       }
-      return input;
+      if (bytes == null) {
+         bytes = input.getBytes(StandardCharsets.UTF_8);
+      }
+      return ModuleConfigStorage.decryptConfigBytes(bytes);
    }
 
    private static String encodePayload(String name, String json) {
