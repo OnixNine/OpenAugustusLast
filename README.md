@@ -59,4 +59,4 @@ Or run `Start.java` / `StartMinecraftDirectory.java` directly from your IDE.
 
 ---
 
-Credits to https://github.com/yxzeroo/openaugustus, all features, issues and bugs fixed on this version, jst compare everything.
+Credits to https://github.com/yxzeroo/openaugustus, all features, issues and bugs fixed on this version with our b4.20.3 internal deobfuscated version. Just compare everything.
