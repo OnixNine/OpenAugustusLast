@@ -67,6 +67,15 @@ public class Main {
          return;
       }
 
+      String javaLibPath = System.getProperty("java.library.path");
+      if (javaLibPath != null && !javaLibPath.isEmpty()) {
+         for (String entry : javaLibPath.split(java.util.regex.Pattern.quote(File.pathSeparator))) {
+            if (!entry.isEmpty() && hasLwjglNative(new File(entry))) {
+               return;
+            }
+         }
+      }
+
       File nativesDir = findExistingNativesDir();
       if (nativesDir == null) {
          nativesDir = extractNativesFromClasspath();
