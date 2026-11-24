@@ -70,7 +70,7 @@ public class NoFall extends Module implements ClickListener, TickListener, Packe
    public NoFall() {
        super("NoFall", "KeinFallen", new Color(222, 80, 95, 255), Categorys.PLAYER);
       this.mode = new StringValue(
-         this, "Mode", "OnGround", new String[]{"OnGround1", "OnGround2", "NoGround", "Stop", "Legit", "Verus", "AAC3", "Collision", "Vulcan"}
+         this, "Mode", "OnGround2", new String[]{"OnGround1", "OnGround2", "NoGround", "Stop", "Legit", "Verus", "AAC3", "Collision", "Vulcan"}
       );
       DoubleValue collisionFallDistanceSetting = new DoubleValue(this, "CollisionFallDistance", 2.0, 0.0, 6.0, 2).named("FallDistance");
       SettingVisibilityCondition condition = () -> {
