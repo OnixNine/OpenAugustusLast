@@ -415,7 +415,10 @@ def fatJar = tasks.register('fatJar', Jar) {
     zip64 = true
 
     manifest {
-        attributes 'Main-Class': 'Start'
+        attributes(
+            'Main-Class': 'Start',
+            'Multi-Release': 'true'
+        )
     }
 
     from(sourceSets.main.output)
@@ -427,8 +430,7 @@ def fatJar = tasks.register('fatJar', Jar) {
     }) {
         exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/MANIFEST.MF'
         exclude 'META-INF/services/**'
-        exclude 'META-INF/versions/**'
-        exclude 'module-info.class'
+        exclude '**/module-info.class'
     }
 }
 
@@ -467,7 +469,10 @@ def compatibilityJar = tasks.register('compatibilityJar', Jar) {
     zip64 = true
 
     manifest {
-        attributes 'Main-Class': 'net.minecraft.client.main.Main'
+        attributes(
+            'Main-Class': 'net.minecraft.client.main.Main',
+            'Multi-Release': 'true'
+        )
     }
 
     from(sourceSets.main.output)
@@ -479,8 +484,7 @@ def compatibilityJar = tasks.register('compatibilityJar', Jar) {
     }) {
         exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/MANIFEST.MF'
         exclude 'META-INF/services/**'
-        exclude 'META-INF/versions/**'
-        exclude 'module-info.class'
+        exclude '**/module-info.class'
     }
 
     doLast {
