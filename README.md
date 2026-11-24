@@ -1,5 +1,7 @@
 <p align="center">
   <sub>Credits to <a href="https://github.com/yxzeroo/openaugustus">https://github.com/yxzeroo/openaugustus</a>, all features, issues and bugs fixed on this version with our b4.20.3 internal deobfuscated version. Just compare everything.</sub>
+  <br>
+  <sub>Disclaimer: Not all videos in <code>tests/</code> are recorded properly, as everything was automated by Gemini 4 Neon.</sub>
 </p>
 
 <p align="center">
