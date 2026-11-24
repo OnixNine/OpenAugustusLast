@@ -1,4 +1,8 @@
 <p align="center">
+  <sub>Credits to <a href="https://github.com/yxzeroo/openaugustus">https://github.com/yxzeroo/openaugustus</a>, all features, issues and bugs fixed on this version with our b4.20.3 internal deobfuscated version. Just compare everything.</sub>
+</p>
+
+<p align="center">
   <img src="assets/ss.png" alt="Skid Solutions Banner" width="350" />
   <br><br>
   <a href="https://discord.gg/skidsolutions">
@@ -56,7 +60,3 @@ Generated `build/libs/`:
 ```
 
 Or run `Start.java` / `StartMinecraftDirectory.java` directly from your IDE.
-
----
-
-Credits to https://github.com/yxzeroo/openaugustus, all features, issues and bugs fixed on this version with our b4.20.3 internal deobfuscated version. Just compare everything.
