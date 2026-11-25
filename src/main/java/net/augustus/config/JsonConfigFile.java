@@ -201,6 +201,12 @@ public abstract class JsonConfigFile implements NamedConfigComponent {
       }
    }
 
+   public void writeSnapshot(JsonElement snapshot) {
+      if (snapshot != null) {
+         this.writeJsonFile(new File(this.getFilePath()), snapshot);
+      }
+   }
+
    public boolean markLoadedEvenIfEmpty() {
       return false;
    }

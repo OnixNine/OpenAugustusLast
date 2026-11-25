@@ -93,6 +93,11 @@ public class ModuleSettingsConfigSection extends AbstractFeatureConfigFile {
       return true;
    }
 
+   @Override
+   public boolean markLoadedEvenIfEmpty() {
+      return true;
+   }
+
    private static JsonObject deepMergeJson(JsonObject json, JsonObject json2) {
       JsonObject json3 = new JsonObject();
 

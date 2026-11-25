@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.function.Supplier;
 
@@ -89,18 +90,29 @@ public class JsonFileStorageHandler {
    public void write(File file, JsonElement elem, Gson gson) {
       this.ensureParentDirectory(file);
 
+      Path target = file.toPath();
+      Path tmp = target.resolveSibling(file.getName() + ".tmp");
       try {
          String str = gson.toJson(elem);
          if (this.encoder != null) {
             byte[] bytes = (byte[])this.encoder.apply(str);
-            Files.write(file.toPath(), bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            Files.write(tmp, bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
          } else {
-            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+            try (BufferedWriter writer = Files.newBufferedWriter(tmp, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
                writer.write(str);
                writer.flush();
             }
          }
+         try {
+            Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+         } catch (IOException atomicEx) {
+            Files.move(tmp, target, StandardCopyOption.REPLACE_EXISTING);
+         }
       } catch (IOException e) {
+         try {
+            Files.deleteIfExists(tmp);
+         } catch (IOException ignored) {
+         }
          e.printStackTrace();
       }
    }

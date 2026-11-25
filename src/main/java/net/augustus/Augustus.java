@@ -177,18 +177,32 @@ public class Augustus {
       }
    }
 
-   public void stop() {
-      if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().getSession() != null) {
-         Minecraft.getMinecraft().getSession().updatePlayTime(false);
+   public synchronized void stop() {
+      if (this.shuttingDown) {
+         return;
       }
-
-      this.configManager.snapshotAll();
-      this.configManager.saveAll();
+      this.shuttingDown = true;
 
       try {
-         Thread.sleep(200L);
-      } catch (InterruptedException e) {
-         throw new RuntimeException(e);
+         if (this.moduleManager != null && this.moduleManager.clickGui != null && this.moduleManager.clickGui.isToggled()) {
+            this.moduleManager.clickGui.setToggled(false, false);
+         }
+      } catch (Throwable ignored) {
+      }
+
+      try {
+         if (Minecraft.getMinecraft() != null && Minecraft.getMinecraft().getSession() != null) {
+            Minecraft.getMinecraft().getSession().updatePlayTime(false);
+         }
+      } catch (Throwable ignored) {
+      }
+
+      try {
+         if (this.configManager != null) {
+            this.configManager.saveAllForShutdown();
+         }
+      } catch (Throwable t) {
+         t.printStackTrace();
       }
    }
 

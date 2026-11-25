@@ -23,4 +23,9 @@ public class ClientSettingsConfigFile extends AbstractFeatureConfigFile {
    public boolean alwaysReserializeOnSave() {
       return true;
    }
+
+   @Override
+   public boolean markLoadedEvenIfEmpty() {
+      return true;
+   }
 }

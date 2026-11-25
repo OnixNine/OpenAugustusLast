@@ -132,7 +132,7 @@ public class ClickGui extends Module implements DownloadTerrainListener, TickLis
 
    @Override
    public void onDisable() {
-      Augustus.getInstance().getConfigManager().snapshotAll();
+      Augustus.getInstance().getConfigManager().saveAllAsync();
    }
 
    @Override

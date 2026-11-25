@@ -2215,6 +2215,7 @@ this.entityRenderer.itemRenderer.resetEquippedProgress();
 
       try {
          flag = true;
+         Augustus.getInstance().stop();
          Augustus.getInstance().getDiscordRpcManager().shutdown();
          LOGGER.info("Stopping!");
 
@@ -2727,7 +2728,7 @@ if (this.gameSettings.language != null) {
          this.ingameGUI = new GuiIngameHook(this);
          Augustus.getInstance().preStart();
          Augustus.getInstance().start();
-         Runtime.getRuntime().addShutdownHook(new Thread(Augustus.getInstance()::getMouseWheelTracker));
+         Runtime.getRuntime().addShutdownHook(new Thread(Augustus.getInstance()::stop, "OpenAugustus-ShutdownHook"));
          mc = this;
 if (this.serverName != null) {
 this.displayGuiScreen(new GuiConnecting(new GuiMainMenu(), this, this.serverName, this.serverPort));

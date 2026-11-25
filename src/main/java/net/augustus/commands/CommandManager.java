@@ -77,7 +77,7 @@ public class CommandManager implements ChatListener {
          if (args.length > 0 && args[0].equalsIgnoreCase(command.getCommand())) {
             command.commandAction(args, message);
             event.cancel();
-            Augustus.getInstance().getConfigManager().snapshotAll();
+            Augustus.getInstance().getConfigManager().saveAllAsync();
          }
       }
 

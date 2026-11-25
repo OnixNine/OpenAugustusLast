@@ -755,6 +755,10 @@ public class ModuleConfigStorage extends JsonConfigFile {
             Augustus.getInstance().getModuleManager().sortModules();
          }
 
+         if (Augustus.getInstance().getConfigManager() != null) {
+            Augustus.getInstance().getConfigManager().saveAllAsync();
+         }
+
          if (report.hasAnyIssue()) {
             report.logToConsole();
             if (notify) {
