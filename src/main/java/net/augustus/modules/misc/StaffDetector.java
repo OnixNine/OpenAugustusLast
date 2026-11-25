@@ -680,7 +680,7 @@ public class StaffDetector extends Module implements LoadWorldListener, RenderLi
          boolean flag = list.contains(this.lists.getSelectedValue());
          String[] strings = (String[])list.toArray(new String[0]);
          if (!flag) {
-            if (strings[0] == null) return;
+            if (strings.length == 0) return;
             String str = strings[0];
             this.lists.setSelectedValue(str);
          }
